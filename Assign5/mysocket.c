@@ -43,9 +43,7 @@ void *recvThread(void *arg){
 
     while(1){
         
-        while(commfd == -1){
-            sleep(1);
-        }
+        while(commfd == -1);
 
         // recieve the first 4 bytes which is the len of the message
         int len;
@@ -84,9 +82,7 @@ void *recvThread(void *arg){
 void* sendThread(void *arg){
 
     while(1){
-        while(commfd==-1){
-            sleep(1);
-        }
+        while(commfd==-1);
         while(send_count==0){
             sleep(1);
         }
@@ -192,4 +188,6 @@ int my_close(int fd){
 
     // close the socket
     close(fd);
+
+    // cancel all threads
 }
