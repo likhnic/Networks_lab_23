@@ -14,9 +14,9 @@ int send_out=0;
 message **send_buffer;
 message **recv_buffer;
 
-pthread_mutex_t recvMutex, sendMutex;
+pthread_mutex_t recvMutex, sendMutex, tcpLock = PTHREAD_MUTEX_INITIALIZER;
 
-int commfd;
+int MyTCP = -1;
 
 int my_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen){
     int ret = bind(sockfd, addr, addrlen);
@@ -29,39 +29,65 @@ int my_listen(int sockfd, int backlog){
 }
 
 int my_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen){
-    commfd = accept(sockfd, addr, addrlen);
-    return commfd;
+
+    int newsockfd = accept(sockfd, addr, addrlen);
+    if(newsockfd == -1){
+        return -1;
+    }
+    pthread_mutex_lock(&tcpLock);
+    MyTCP = newsockfd;
+    pthread_mutex_unlock(&tcpLock);
+
+    return MyTCP;
 }
 
 int my_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen){
-    commfd = connect(sockfd, addr, addrlen);
-    return commfd;
+    int done = connect(sockfd, addr, addrlen);
+
+    if(done == -1){
+        return -1;
+    }
+    pthread_mutex_lock(&tcpLock);
+    MyTCP = sockfd;
+    pthread_mutex_unlock(&tcpLock);
+
+    return MyTCP;
 }
 
 
 void *recvThread(void *arg){
 
     while(1){
-        
-        while(commfd == -1);
+        pthread_mutex_lock(&tcpLock);
+        while(MyTCP == -1){
+            pthread_mutex_unlock(&tcpLock);
+            sleep(1);
+            pthread_mutex_lock(&tcpLock);
+        }
+        pthread_mutex_unlock(&tcpLock);
 
         // recieve the first 4 bytes which is the len of the message
         int len;
-        recv(commfd, &len, sizeof(int), 0);
+        recv(MyTCP, &len, sizeof(int), 0);
 
         // make a buffer of that size and recieve the actual message
+
         char *buf = (char *)malloc(len);
         int i=0;
         while(i<len){
             int size = (len-i>1000)?1000:(len-i);
-            recv(commfd, buf+i, size, 0);
+            recv(MyTCP, buf+i, size, 0);
             i+=size;
         }
 
         // store the message in the recv_buffer
+        pthread_mutex_lock(&recvMutex);
         while(recv_count==MAX_MESSAGE_TABLE_SIZE){
+            pthread_mutex_unlock(&recvMutex);
             sleep(1);
+            pthread_mutex_lock(&recvMutex);
         }
+        pthread_mutex_unlock(&recvMutex);
 
         // first copy it to message struct
         message *msg = (message *)malloc(sizeof(message));
@@ -76,16 +102,29 @@ void *recvThread(void *arg){
         recv_count++;
         pthread_mutex_unlock(&recvMutex);
     }
+
+    return NULL;
 }
 
 
 void* sendThread(void *arg){
 
     while(1){
-        while(commfd==-1);
-        while(send_count==0){
+        pthread_mutex_lock(&tcpLock);
+        while(MyTCP==-1){
+            pthread_mutex_unlock(&tcpLock);
             sleep(1);
+            pthread_mutex_lock(&tcpLock);
         }
+        pthread_mutex_unlock(&tcpLock);
+
+        pthread_mutex_lock(&tcpLock);
+        while(send_count==0){
+            pthread_mutex_unlock(&tcpLock);
+            sleep(1);
+            pthread_mutex_lock(&tcpLock);
+        }
+        pthread_mutex_unlock(&tcpLock);
         
         // lock mutex to access send_buffer
         pthread_mutex_lock(&sendMutex);
@@ -96,13 +135,12 @@ void* sendThread(void *arg){
 
         // send fitrst 4 bytes the len of the message
         int len = msg->len;
-        send(commfd, &len, sizeof(int), 0);
-
+        send(MyTCP, &len, sizeof(int), 0);
         // then send the actual buf, in multiple calls of size<=1000 bytes
         int i=0;
         while(i<len){
             int size = (len-i>1000)?1000:(len-i);
-            send(commfd, msg->buf+i, size, 0);
+            send(MyTCP, msg->buf+i, size, 0);
             i+=size;
         }
 
@@ -110,6 +148,8 @@ void* sendThread(void *arg){
         free(msg->buf);
         free(msg);
     }
+
+    return NULL;
 }
 
 int my_socket(int domain, int type, int protocol){
@@ -141,7 +181,7 @@ int my_socket(int domain, int type, int protocol){
 
 }
 
-ssize_t my_send(int sockfd, const void *buf, size_t len, int flags){
+ssize_t my_send(int sockfd, void *buf, size_t len, int flags){
 
     // store buf in local variable, so as to decrease time in lock
     message *msg = (message *)malloc(sizeof(message));
@@ -151,9 +191,14 @@ ssize_t my_send(int sockfd, const void *buf, size_t len, int flags){
     msg->flags = flags;
 
     // if send buffer is full wait till it becomes empty and then add the message
+    pthread_mutex_lock(&sendMutex);
     while(send_count==MAX_MESSAGE_TABLE_SIZE){
+        pthread_mutex_unlock(&sendMutex);
         sleep(1);
+        pthread_mutex_lock(&sendMutex);
     }
+    pthread_mutex_unlock(&sendMutex);
+
     pthread_mutex_lock(&sendMutex);
     send_buffer[send_in] = msg;
     send_in = (send_in+1)%MAX_MESSAGE_TABLE_SIZE;
@@ -163,12 +208,17 @@ ssize_t my_send(int sockfd, const void *buf, size_t len, int flags){
     return len;
 }
 
-ssize_t my_recv(int sockfd, const void *buf, size_t len, int flags){
+ssize_t my_recv(int sockfd, void *buf, size_t len, int flags){
 
     // block until there is something to recieve
+    // lock mutex to access recv_buffer
+    pthread_mutex_lock(&recvMutex);
     while(recv_count==0){
+        pthread_mutex_unlock(&recvMutex);
         sleep(1);
+        pthread_mutex_lock(&recvMutex);
     }
+    pthread_mutex_unlock(&recvMutex);
 
     // copy the message from the recv_buffer to buf
     pthread_mutex_lock(&recvMutex);
@@ -177,9 +227,12 @@ ssize_t my_recv(int sockfd, const void *buf, size_t len, int flags){
     recv_count--;
     pthread_mutex_unlock(&recvMutex);
 
+
     memcpy(buf, msg->buf, msg->len);
     free(msg->buf);
     free(msg);
+
+    return len;
 }
 
 
@@ -187,7 +240,13 @@ ssize_t my_recv(int sockfd, const void *buf, size_t len, int flags){
 int my_close(int fd){
 
     // close the socket
+    sleep(5);
+
+    // async cancel the threads
+    pthread_cancel(R);
+    pthread_cancel(S);
     close(fd);
 
-    // cancel all threads
+    return 0;
+
 }
