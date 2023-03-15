@@ -34,11 +34,65 @@ int main(){
     buf2 = strdup("Hello World! This is a test message!");
     my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
+        buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+    buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+    buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+        buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+    buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+    buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+        buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+    buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+    buf2 = strdup("Hello World! This is a test message!");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
     char buf[1000];
     int len = my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
     my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+    my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+    my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+        my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+    my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+    my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+        my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+    my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+    my_recv(sockfd, buf, 1000, 0);
+    printf("%s\n", buf);
+
+        my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
     my_recv(sockfd, buf, 1000, 0);
