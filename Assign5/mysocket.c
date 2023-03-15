@@ -70,6 +70,8 @@ void *recvThread(void *arg){
         int len;
         recv(MyTCP, &len, sizeof(int), 0);
 
+        len = (len>5000)?5000:len;
+
         // make a buffer of that size and recieve the actual message
 
         char *buf = (char *)malloc(len);
@@ -185,9 +187,9 @@ ssize_t my_send(int sockfd, void *buf, size_t len, int flags){
 
     // store buf in local variable, so as to decrease time in lock
     message *msg = (message *)malloc(sizeof(message));
-    msg->buf = (void *)malloc(len);
-    memcpy(msg->buf, buf, len);
-    msg->len = len;
+    msg->len = (len>5000?5000:len);
+    msg->buf = (void *)malloc(msg->len);
+    memcpy(msg->buf, buf, msg->len);
     msg->flags = flags;
 
     // if send buffer is full wait till it becomes empty and then add the message
@@ -205,7 +207,7 @@ ssize_t my_send(int sockfd, void *buf, size_t len, int flags){
     send_count++;
     pthread_mutex_unlock(&sendMutex);
     
-    return len;
+    return msg->len;
 }
 
 ssize_t my_recv(int sockfd, void *buf, size_t len, int flags){
@@ -228,7 +230,7 @@ ssize_t my_recv(int sockfd, void *buf, size_t len, int flags){
     pthread_mutex_unlock(&recvMutex);
 
 
-    memcpy(buf, msg->buf, msg->len);
+    memcpy(buf, msg->buf, (len>msg->len?msg->len:len));
     free(msg->buf);
     free(msg);
 
