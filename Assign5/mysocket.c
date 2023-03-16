@@ -57,6 +57,8 @@ int my_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen){
 
 void *recvThread(void *arg){
 
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
     while(1){
         pthread_mutex_lock(&tcpLock);
         while(MyTCP == -1){
@@ -67,9 +69,18 @@ void *recvThread(void *arg){
         pthread_mutex_unlock(&tcpLock);
 
         // recieve the first 4 bytes which is the len of the message
+        char length[4];
+        sprintf(length, "%d", 4);
         int len;
-        recv(MyTCP, &len, sizeof(int), 0);
-
+        int totalrecv = 0;
+        while(1)
+        {
+            int temp = recv(MyTCP, length + totalrecv, 4 - totalrecv, 0);                // Receiving verification message from server
+            totalrecv += temp;
+            if(totalrecv == 4)
+            break;
+        }
+        
         len = (len>5000)?5000:len;
 
         // make a buffer of that size and recieve the actual message
@@ -108,8 +119,15 @@ void *recvThread(void *arg){
     return NULL;
 }
 
+int findMin(int a, int b)
+{
+    return (a < b) ? a : b;
+}
 
 void* sendThread(void *arg){
+
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+    int CHUNKSIZE = 1000;
 
     while(1){
         pthread_mutex_lock(&tcpLock);
@@ -135,16 +153,38 @@ void* sendThread(void *arg){
         send_count--;
         pthread_mutex_unlock(&sendMutex);
 
-        // send fitrst 4 bytes the len of the message
-        int len = msg->len;
-        send(MyTCP, &len, sizeof(int), 0);
-        // then send the actual buf, in multiple calls of size<=1000 bytes
-        int i=0;
-        while(i<len){
-            int size = (len-i>1000)?1000:(len-i);
-            send(MyTCP, msg->buf+i, size, 0);
-            i+=size;
+       
+        
+        // send(MyTCP, &len, sizeof(int), 0);
+        
+        char length[4];
+        sprintf(length, "%d", 4);
+        // send first 4 bytes the length of the message
+        int cntSent = 0;
+		while(1)                                                                        // Keep sending until whole string is transferred
+        {
+            int temp = send(MyTCP, length+cntSent, 4 - cntSent, 0);
+            cntSent += temp;
+            if(cntSent == 4)
+            break;
         }
+
+        // then send the actual buf, in multiple calls of size<=1000 bytes
+
+        int i = 0, len = msg->len;
+        while(1)                                          // Sending a chunk of 1000 bytes in each iteration
+        {
+            if(i*CHUNKSIZE >= len)                                          // Checking if we have already sent the whole buffer in prev iteration
+            break;  
+            cntSent = 0;
+            while(1)
+            {
+                int temp = send(MyTCP, msg->buf+cntSent+i*CHUNKSIZE, findMin(len-i*CHUNKSIZE, CHUNKSIZE)-cntSent, 0);
+                cntSent += temp;
+                if(cntSent == findMin(len-i*CHUNKSIZE, CHUNKSIZE))
+                break;
+            }
+        } 
 
         // free the message
         free(msg->buf);
@@ -247,6 +287,10 @@ int my_close(int fd){
     // async cancel the threads
     pthread_cancel(R);
     pthread_cancel(S);
+
+    pthread_join(R, NULL);
+    pthread_join(S, NULL);
+    
     close(fd);
 
     return 0;
