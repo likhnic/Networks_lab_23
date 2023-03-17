@@ -80,6 +80,8 @@ void *recvThread(void *arg){
             if(totalrecv == 4)
             break;
         }
+
+        len = atoi(length);
         
         len = (len>5000)?5000:len;
 
@@ -158,33 +160,25 @@ void* sendThread(void *arg){
         // send(MyTCP, &len, sizeof(int), 0);
         
         char length[4];
-        sprintf(length, "%d", 4);
+        length[0] = (msg->len/1000)%10 + '0';
+        length[1] = (msg->len/100)%10 + '0';
+        length[2] = (msg->len/10)%10 + '0';
+        length[3] = (msg->len)%10 + '0';
+        int len = msg->len;
+
+        
         // send first 4 bytes the length of the message
-        int cntSent = 0;
-		while(1)                                                                        // Keep sending until whole string is transferred
-        {
-            int temp = send(MyTCP, length+cntSent, 4 - cntSent, 0);
-            cntSent += temp;
-            if(cntSent == 4)
-            break;
-        }
+        
+        send(MyTCP, length, 4, 0);            
 
         // then send the actual buf, in multiple calls of size<=1000 bytes
 
-        int i = 0, len = msg->len;
-        while(1)                                          // Sending a chunk of 1000 bytes in each iteration
-        {
-            if(i*CHUNKSIZE >= len)                                          // Checking if we have already sent the whole buffer in prev iteration
-            break;  
-            cntSent = 0;
-            while(1)
-            {
-                int temp = send(MyTCP, msg->buf+cntSent+i*CHUNKSIZE, findMin(len-i*CHUNKSIZE, CHUNKSIZE)-cntSent, 0);
-                cntSent += temp;
-                if(cntSent == findMin(len-i*CHUNKSIZE, CHUNKSIZE))
-                break;
-            }
-        } 
+        int i = 0;
+        while(i<len){
+            int size = (len-i>1000)?1000:(len-i);
+            send(MyTCP, msg->buf+i, size, 0);
+            i+=size;
+        }
 
         // free the message
         free(msg->buf);
