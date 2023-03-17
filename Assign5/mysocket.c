@@ -10,9 +10,11 @@ int send_in=0;
 
 int recv_out=0;
 int send_out=0;
-
+int flag = 0; 
 message **send_buffer;
 message **recv_buffer;
+
+
 
 pthread_mutex_t recvMutex, sendMutex, tcpLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -81,7 +83,7 @@ void *recvThread(void *arg){
         }
 
         len = atoi(length);
-        printf("len : %d\n", len);
+        // printf("len : %d\n", len);
         len = (len>5000)?5000:len;
 
         // make a buffer of that size and recieve the actual message
@@ -274,16 +276,23 @@ ssize_t my_recv(int sockfd, void *buf, size_t len, int flags){
 
 int my_close(int fd){
 
-    // close the socket
-    sleep(5);
+    if(flag == 0)
+    {
+        flag--;
+        // close the socket
+        sleep(5);
 
-    // async cancel the threads
-    pthread_cancel(R);
-    pthread_cancel(S);
+        // async cancel the threads
+        pthread_cancel(R);
+        pthread_cancel(S);
 
-    pthread_join(R, NULL);
-    pthread_join(S, NULL);
-    
+        pthread_join(R, NULL);
+        pthread_join(S, NULL);
+        
+        pthread_mutex_destroy(&recvMutex);
+        pthread_mutex_destroy(&sendMutex);
+    }
+
     close(fd);
 
     return 0;
