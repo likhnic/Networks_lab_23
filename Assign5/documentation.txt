@@ -1,4 +1,4 @@
--------------------------- Data Structures & Variables-----------------------------------------
+-------------------------- Data Structures -----------------------------------------
 
 message : struct type
     buf -> stores the content of  message
@@ -13,7 +13,10 @@ recv_buffer : message** type
     equivalent to Recv_message table
     can stores a maximum of 10 messages
 
-NOTE : We have considerd this problem as equivalent to bounded buffer producer consumer problem.
+-------------------------- Variables ------------------------------------------------
+
+NOTE : We have considerd this problem as equivalent to standard bounded buffer producer consumer problem.
+        So, below variables are similar to that.
 
 send_count : int type
     stores no of messages currently in send table
@@ -22,13 +25,77 @@ recv_count : int type
     stores no of messages currently in recv table
 
 send_in : int type
-    stores the index in circular buffer where next element need to be inserted
+    stores the index in circular buffer [corresponding to Send_message table] where next element need to be inserted
 
+send_out : int type
+    stores the index in circular buffer [corresponding to Send_message table] where next element need to be removed
 
+recv_in : int type
+    stores the index in circular buffer [corresponding to Recv_message table] where next element need to be inserted
 
+recv_out : int type
+    stores the index in circular buffer [corresponding to Recv_message table] where next element need to be removed
 
+MyTCP : int type
+    stores the file descriptor through which all communications have to take place
+    For example, in server, we communicate through newsockfd, but in client, we communicate through sockfd
 
+recvMutex : pthread_mutex_t type
+    lock corresponding to read-write in Recv_message table
 
+sendMutex : pthread_mutex_t type
+    lock corresponding to read-write in Recv_message table
+
+------------------------------- Functions ----------------------------------------
+
+int my_socket(int domain, int type, int protocol);
+    It  creates  an endpoint for communication and returns a file de‐
+    scriptor that refers to that endpoint.
+
+int my_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+    When a socket is created with my_socket(), it exists in a name space (ad‐
+    dress family) but has no address assigned to it.   my_bind()  assigns  the
+    address  specified  by  addr  to the socket referred to by the file de‐
+    scriptor sockfd.  addrlen specifies the size, in bytes, of the  address
+    structure  pointed to by addr
+
+int my_listen(int sockfd, int backlog);
+    my_listen()  marks  the  socket referred to by sockfd as a passive socket,
+    that is, as a socket that will be used to  accept  incoming  connection
+    requests using my_accept().
+
+int my_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+    It extracts the  first  connection  request  on  the  queue  
+    of pending connections for the listening socket, sockfd, creates 
+    a new connected socket, and returns a new file descriptor  referring  to that socket.
+
+int my_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+    The  my_connect()  function connects the socket referred to by the file
+    descriptor sockfd to the address specified by addr.  The addrlen  argu‐
+    ment  specifies the size of addr.
+
+ssize_t my_send(int sockfd, void *buf, size_t len, int flags);
+    The my_send() function sends data stored in buf of size
+    len through sockfd
+
+ssize_t my_recv(int sockfd, void *buf, size_t len, int flags);
+    The my_recv() function receives data stored in buf of size
+    len through sockfd
+
+int my_close(int fd);
+    my_close()  closes  a  file descriptor, so that it no longer refers to any
+    file and may be reused.
+
+void *recvThread(void *arg);
+    It is the runner function for thread R & performs all recv operations
+    as specified in problem statement.
+
+void *sendThread(void *arg);
+    It is the runner function for thread S & performs all send operations
+    as specified in problem statement.
+
+int findMin(int a, int b);
+    Returns minimum of the two
 
 ---------------------------------------- Description --------------------------------------------
 
