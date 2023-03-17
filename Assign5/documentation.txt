@@ -23,4 +23,32 @@ recv_count : int type
 
 send_in : int type
     stores the index in circular buffer where next element need to be inserted
-    
+
+
+
+
+
+
+
+---------------------------------------- Description --------------------------------------------
+
+First we have created recvThread and sendThread. MyTCP is initialised to -1 and it will be changed
+in Accept call and connect call. Since here client will only call connect and server will only
+accept, MyTCP will get modified only once. The recvThread and sendThread will busy wait on this 
+MyTCP. Once MyTCP is modified, they will start their execution. The recvThread will block until 
+it gets some message then, it will insert it in the recv table, before inserting it will check
+if locked or not, if not locked then insertion happens else it will wait. The sendThread will see 
+if there is anything to send in send table, if yes then it will send it and remove it from the table.
+In sendThread we first send message length in first 4 bytes and then send the message. In recvThread
+we first receive message length in first 4 bytes(we recieve it so that 4 bytes are surely recieved) 
+and then receive the message. The sendThread and my_send will busy wait on my_send and recvThread and 
+my_recv will busy wait on recv_count.
+
+my_send will check if send table is full(after locking) or not, if full then it will busy wait(during 
+this it will unlock the lock). If not full then it will insert the message in send table and increment
+send_count. After this it will unlock the lock. sendThread will busy wait on send_count and when has something
+to send, it will remove from table after locking and send the message.
+
+my_recv will check if recv table is empty(after locking) or not, if empty then it will busy wait(during
+this it will unlock the lock). If not empty then it will remove the message from recv table and decrement
+recv_count. After this it will unlock the lock.
