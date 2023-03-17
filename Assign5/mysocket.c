@@ -70,7 +70,6 @@ void *recvThread(void *arg){
 
         // recieve the first 4 bytes which is the len of the message
         char length[4];
-        sprintf(length, "%d", 4);
         int len;
         int totalrecv = 0;
         while(1)
@@ -82,7 +81,7 @@ void *recvThread(void *arg){
         }
 
         len = atoi(length);
-        
+        printf("len : %d\n", len);
         len = (len>5000)?5000:len;
 
         // make a buffer of that size and recieve the actual message
@@ -91,8 +90,8 @@ void *recvThread(void *arg){
         int i=0;
         while(i<len){
             int size = (len-i>1000)?1000:(len-i);
-            recv(MyTCP, buf+i, size, 0);
-            i+=size;
+            int ss = recv(MyTCP, buf+i, size, 0);
+            i+=ss;
         }
 
         // store the message in the recv_buffer
@@ -176,8 +175,8 @@ void* sendThread(void *arg){
         int i = 0;
         while(i<len){
             int size = (len-i>1000)?1000:(len-i);
-            send(MyTCP, msg->buf+i, size, 0);
-            i+=size;
+            int ss = send(MyTCP, msg->buf+i, size, 0);
+            i+=ss;
         }
 
         // free the message
@@ -264,7 +263,7 @@ ssize_t my_recv(int sockfd, void *buf, size_t len, int flags){
     pthread_mutex_unlock(&recvMutex);
 
 
-    memcpy(buf, msg->buf, (len>msg->len?msg->len:len));
+    memcpy(buf, msg->buf, (len>msg->len)?msg->len:len);
     free(msg->buf);
     free(msg);
 

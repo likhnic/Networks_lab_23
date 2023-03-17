@@ -4,13 +4,11 @@
 #include <arpa/inet.h>
 #include "mysocket.h"
 
-int main()
-{
+int main(){
 
     int sockfd = my_socket(AF_INET, SOCK_MyTCP, 0);
-    if (sockfd == -1)
-    {
-        printf("Error in creating socket");
+    if(sockfd == -1){
+        printf("Error in creating socket"); 
         exit(1);
     }
 
@@ -19,54 +17,50 @@ int main()
     server_addr.sin_port = htons(8080);
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    if (my_connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
-    {
-        printf("Error in connecting");
+    if(my_connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1){
+        printf("Error in connecting"); 
         exit(1);
     }
 
     char *buf2 = strdup("Hello World! This is a test message! 1");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 2");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 3");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 4");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
-    buf2 = strdup("Hello World! This is a test message! 5");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+        buf2 = strdup("Hello World! This is a test message! 5");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 6");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 7");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
-    buf2 = strdup("Hello World! This is a test message! 8");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+        buf2 = strdup("Hello World! This is a test message! 8");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 9");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 10");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
+
+        buf2 = strdup("abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd");
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 12");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
     buf2 = strdup("Hello World! This is a test message! 13");
-    my_send(sockfd, buf2, strlen(buf2) + 1, 0);
+    my_send(sockfd, buf2, strlen(buf2)+1, 0);
 
-
-    for (int i = 0; i < 3; ++i)
-    {
-        int num = i+100;
-        my_send(sockfd, &num, 4, 0);
-    }
     char buf[1000];
     int len = my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
@@ -80,7 +74,7 @@ int main()
     my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
-    my_recv(sockfd, buf, 1000, 0);
+        my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
     my_recv(sockfd, buf, 1000, 0);
@@ -89,7 +83,7 @@ int main()
     my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
-    my_recv(sockfd, buf, 1000, 0);
+        my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
     my_recv(sockfd, buf, 1000, 0);
@@ -98,7 +92,7 @@ int main()
     my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
-    my_recv(sockfd, buf, 1000, 0);
+        my_recv(sockfd, buf, 1000, 0);
     printf("%s\n", buf);
 
     my_recv(sockfd, buf, 1000, 0);
