@@ -44,6 +44,7 @@ int main(){
 
     my_recv(newsocfd, buf, 1000, 0);
     printf("%s\n", buf);
+    
 
     my_recv(newsocfd, buf, 1000, 0);
     printf("%s\n", buf);
@@ -75,8 +76,12 @@ int main(){
     my_recv(newsocfd, buf, 1000, 0);
     printf("%s\n", buf);
 
-    my_recv(newsocfd, buf, 1000, 0);
-    printf("%s\n", buf);
+
+    for(int i=0;i<3;++i){
+        int n;
+        my_recv(newsocfd, &n, 4, 0);
+        printf("%d\n",n);
+    }
 
     char *buf2 = strdup("Hello World! This is a test message!");
     my_send(newsocfd, buf2, strlen(buf2)+1, 0);
