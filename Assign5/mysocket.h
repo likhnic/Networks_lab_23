@@ -18,21 +18,6 @@ typedef struct{
     int flags;
 }message;
 
-extern message **send_buffer;
-extern message **recv_buffer;
-
-extern int send_count;
-extern int recv_count;
-
-extern int recv_in, send_in;
-extern int recv_out, send_out;
-
-extern pthread_t R, S;
-extern pthread_mutex_t recvMutex, sendMutex;
-
-extern int MyTCP; // the actual socfd used for communication(in server newsockfd is used, 
-                        // in client sockfd is used)
-
 int my_socket(int domain, int type, int protocol);
 int my_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 int my_listen(int sockfd, int backlog);

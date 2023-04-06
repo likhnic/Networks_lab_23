@@ -105,7 +105,7 @@ int main(){
 
     my_send(newsocfd, buf2, strlen(buf2)+1, 0);
     
-
+    my_close(newsocfd);
     my_close(sockfd);
 
 }

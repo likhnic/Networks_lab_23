@@ -14,8 +14,6 @@ int flag = 0;
 message **send_buffer;
 message **recv_buffer;
 
-
-
 pthread_mutex_t recvMutex, sendMutex, tcpLock = PTHREAD_MUTEX_INITIALIZER;
 
 int MyTCP = -1;
@@ -95,7 +93,6 @@ void *recvThread(void *arg){
             int ss = recv(MyTCP, buf+i, size, 0);
             i+=ss;
         }
-
         // store the message in the recv_buffer
         pthread_mutex_lock(&recvMutex);
         while(recv_count==MAX_MESSAGE_TABLE_SIZE){
@@ -130,7 +127,6 @@ int findMin(int a, int b)
 void* sendThread(void *arg){
 
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    int CHUNKSIZE = 1000;
 
     while(1){
         pthread_mutex_lock(&tcpLock);
